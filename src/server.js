@@ -24,6 +24,7 @@ async function handleRequest(config, request, response) {
         body: request.body,
     }
 
+    let byMockFunction = false
     if(APIPath in config.mocks) {
         const mockFunction = config.mocks[APIPath]
         const utils = {
@@ -34,8 +35,11 @@ async function handleRequest(config, request, response) {
         }
         // mockFunction 返回 promise 或没有返回，这句代码都能正常执行
         await mockFunction(request, response, utils)
+        byMockFunction = true
     } else {
         const clientResponse = await lib.request(upstreamRequestOptions)
         response.replaceBy(clientResponse)
     }
+
+    response.headers['FFMock-Result'] = byMockFunction ? 'mocked' : 'upstream'
 }
