@@ -32,6 +32,9 @@ package.json
 npm run mock
 ```
 
+### config 自动 reload
+ffmock 运行起来后，更新 mock config 文件的内容，ffmock 会自动应用最新的 config
+
 
 ## mock config 格式
 ```javascript
