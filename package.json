@@ -1,0 +1,19 @@
+{
+    "name": "ffmock",
+    "version": "0.0.1",
+    "description": "Fire Frontend Mock Server",
+    "keywords": "mock",
+    "homepage": "https://github.com/anjianshi/ffmock",
+    "bugs": {
+        "url": "https://github.com/anjianshi/ffmock/issues",
+        "email": "anjianshi@gmail.com"
+    },
+    "license": "GPL-3.0-or-later",
+    "author": "anjianshi <anjianshi@gmail.com>",
+    "main": "./src/index.js",
+    "bin": "./src/cli.js",
+    "repository": "github:anjianshi/ffmock",
+    "engines": {
+        "node": ">=8.0.0"
+    }
+}
