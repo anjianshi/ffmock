@@ -9,7 +9,15 @@ if(process.argv.length !== 3) {
     process.exit(1)
 }
 
-const configFile = path.resolve(process.argv[2])
+const arg = process.argv[2]
+
+if(arg === '-v' || arg === '--version') {
+    const packageJSON = require(path.join(__dirname, '../package.json'))
+    console.log(packageJSON.version)
+    process.exit(0)
+}
+
+const configFile = path.resolve(arg)
 if(!fs.existsSync(configFile)) {
     console.warn(`config file "${configFile}" not exists`)
     process.exit(1)
