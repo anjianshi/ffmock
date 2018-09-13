@@ -24,8 +24,9 @@ async function handleRequest(config, request, response) {
         body: request.body,
     }
 
-    let byMockFunction = false
-    if(APIPath in config.mocks) {
+    const useMock = APIPath in config.mocks
+
+    if(useMock) {
         const mockFunction = config.mocks[APIPath]
         const utils = {
             config: config,
@@ -35,11 +36,17 @@ async function handleRequest(config, request, response) {
         }
         // mockFunction 返回 promise 或没有返回，这句代码都能正常执行
         await mockFunction(request, response, utils)
-        byMockFunction = true
     } else {
         const clientResponse = await lib.request(upstreamRequestOptions)
         response.replaceBy(clientResponse)
     }
 
-    response.headers['FFMock-Result'] = byMockFunction ? 'mocked' : 'upstream'
+    response.headers['FFMock-Result'] = useMock ? 'mocked' : 'upstream'
+
+    // CORS
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    // CORS - preflight
+    response.headers['Access-Control-Max-Age'] = '3600'
+    // CORS - 实际请求
+    response.headers['Access-Control-Expose-Headers'] = 'FFMock-Result'
 }
