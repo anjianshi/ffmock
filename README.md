@@ -1,13 +1,13 @@
 # FFMock - Fire Frontend Mock Server
-前端开发经常要模拟后端某些接口返回的数据（mock），把 mock 写在前端代码里不够方便、灵活，而运行一个能返回 mock 数据的 server 即可解决此问题。  
-前端的请求统一发给此 mock server，对不需要 mock 的接口，会返回原 server 的数据，对需要 mock 的接口则返回 mock 数据。
+前端开发经常要模拟后端接口的返回数据（mock），把 mock 写在前端代码里不够方便、灵活，此工具改为运行一个能返回 mock 数据的 server 来解决此问题。  
+前端的请求统一发给此 mock server，对不需要 mock 的接口，它会返回原接口的响应内容，对需要 mock 的则返回 mock 数据。
 
 
 ## 使用方法
 
 ### 全局使用
 ```
-npm install -g ffmock
+sudo npm install -g ffmock
 ffmock /path/to/mock.config.js
 ```
 
@@ -178,5 +178,50 @@ async function mockFunction(request, response, utils) {
     headers,    // Headers()
     body,       // 原始响应体
     data,       // 解析过的响应体。Content-Type 不为 json 或 json 解析失败时为 null
+}
+```
+
+
+## mock 使用方式演示
+
+### 在多次请求、多个接口之间保留数据
+```javascript
+// id: value
+const APIAData = {}
+
+module.exports = {
+    upstream: 'xxx',
+    mocks: {
+        'api/a/get': (request, response, utils) => {
+            const id = request.query.id
+            response.data = id in APIAData ? APIAData[id] : null
+        },
+        'api/a/set': (request, response, utils) => {
+            const id = request.query.id
+            APIAData[id] = request.query.value || null
+        },
+    }
+}
+```
+
+### 定义一个全局的预处理器 (也可用同样的方法定义后处理器)
+```javascript
+const preprocess = (mockFunction) => {
+    return (request, response, utils) => {
+        // 进行一些预处理行为
+        response.headers['My-Custom-Header'] = 'Custom-Value'
+
+        mockFunction(request, response, utils)
+    }
+}
+
+module.exports = {
+    upstream: 'xxx',
+    mocks: {
+        // 用 preprocess 包裹原 mockFunction 即可应用此预处理器
+        'api/a/get': preprocess((request, response, utils) => {
+            // xxx
+        })
+    }
 }
 ```
