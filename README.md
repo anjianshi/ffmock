@@ -39,6 +39,9 @@ ffmock 运行起来后，更新 mock config 文件的内容，ffmock 会自动�
 ## mock config 格式
 ```javascript
 module.exports = {
+    // mock server 监听的端口
+    port: 9095,
+
     // 上游 API URL，如 'http://api.map.baidu.com/api'
     upstream: '',
 
@@ -99,12 +102,11 @@ async function mockFunction(request, response, utils) {
     config,
 
     /*
-    向 upstream 发起请求，默认会沿用客户端请求信息，可通过 options 修改
-
-    options 的格式见 ClientRequest 的说明
-    此函数返回 promise，并最终解析出一个 ClientResponse 对象，格式见 ClientResponse 的说明
+    用 upstream 的响应结果填充当前 response
+    可通过 options 自定义向 upstream 发起的请求，格式见 ClientRequest 的说明
+    注意：这是个异步函数，要使用它，mockFunction 必须也是异步的
     */
-    API: options => Promise(response),
+    API: async (options) => {},
 
     // 随机数生成器
     random: {
@@ -171,7 +173,7 @@ async function mockFunction(request, response, utils) {
 }
 ```
 
-### ClientResponse -- utils.API() 的返回内容
+### ClientResponse -- utils.API() 的返回内容（一般用不到）
 ```javascript
 {
     status,     // status code
@@ -183,6 +185,20 @@ async function mockFunction(request, response, utils) {
 
 
 ## mock 使用方式演示
+
+### 修改原接口返回的数据
+```javascript
+module.exports = {
+    upstream: 'xxx',
+    mocks: {
+        'some_api': async (request, response, utils) => {
+            await utils.API()
+            response.data.foo = 'bar2'
+        }
+    }
+}
+
+```
 
 ### 在多次请求、多个接口之间保留数据
 ```javascript

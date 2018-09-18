@@ -41,18 +41,19 @@ function loadConfig(configFile) {
 否则返回 [false, message]
 */
 function formatConfig(raw) {
-    const config = {}
+    const config = {
+        port: 9095,
+        base: '',       // base 为空时前后都不加斜杠
+        mocks: {}
+    }
 
-    if(!raw.port) throw new Error('请指定 port')
-    config.port = raw.port
+    if(raw.port) config.port = parseInt(raw.port)
 
     if(!raw.upstream) throw new Error('请指定 upstream')
     config.upstream = formatSlash(raw.upstream, false, false)
 
-    // base 为空时前后都不加斜杠
-    config.base = raw.base ? formatSlash(raw.base, true, false) : ''
+    if(raw.base) config.base = formatSlash(raw.base, true, false)
 
-    config.mocks = {}
     if(raw.mocks) {
         for(const key of Object.keys(raw.mocks)) {
             const mock = raw.mocks[key]
