@@ -103,9 +103,7 @@ class ServerResponse {
         }
 
         // format headers
-        if(!('Content-Length' in this.headers)) {
-            this.headers['Content-Length'] = Buffer.byteLength(this.body)
-        }
+        this.headers['Content-Length'] = Buffer.byteLength(this.body)
 
         if(!('Content-Type' in this.headers)) {
             this.headers['Content-Type'] = 'plain-text'
