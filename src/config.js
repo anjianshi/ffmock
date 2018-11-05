@@ -4,29 +4,32 @@ const { formatSlash } = require('./lib')
 
 module.exports = function loadAndWatchConfig(configFile) {
     const config = loadConfig(configFile)
-
-    fs.watch(configFile, () => {
-        if(!fs.existsSync(configFile)) {
-            console.warn(`config file "${configFile}" not exists`)
-            return
-        }
-
-        delete require.cache[configFile]
-
-        try {
-            var newConfig = loadConfig(configFile)
-        } catch(e) {
-            console.error('config file load failed: ' + e.message)
-            return
-        }
-
-        for(const key of Object.keys(config)) delete config[key]
-        Object.assign(config, newConfig)
-
-        console.log('config reloaded')
-    })
-
+    const execReload = () => reload(config, configFile)
+    // 编辑器保存 config 文件时，可能会先保存一个空文件再写入实际内容，这之间有个延迟，要稍等一下再 reload config。
+    // 不然可能会读出一个空文件来
+    fs.watch(configFile, () => setTimeout(execReload, 500))
     return config
+}
+
+function reload(config, configFile) {
+    if(!fs.existsSync(configFile)) {
+        console.warn(`config file "${configFile}" not exists`)
+        return
+    }
+
+    delete require.cache[configFile]
+
+    try {
+        var newConfig = loadConfig(configFile)
+    } catch(e) {
+        console.error('config file load failed: ' + e.message)
+        return
+    }
+
+    for(const key of Object.keys(config)) delete config[key]
+    Object.assign(config, newConfig)
+
+    console.log('config reloaded')
 }
 
 function loadConfig(configFile) {
