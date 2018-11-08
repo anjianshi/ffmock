@@ -33,7 +33,13 @@ function request(requestOptions) {
         const request = new ClientRequest(requestOptions)
         const httpLib = request.protocol === 'https:' ? https : http
 
-        const nodeRequestOptions = { method: request.method, host: request.host, port: request.port, path: request.path, headers: request.headers }
+        const nodeRequestOptions = {
+            method: request.method,
+            host: request.host,
+            port: request.port,
+            path: request.path,
+            headers: request.headers
+        }
 
         const nodeClientRequest = httpLib.request(nodeRequestOptions, nodeClientResponse => {
             let bodyBuf = Buffer.from('')
@@ -177,7 +183,7 @@ class ClientResponse {
         }
         this.body = bodyBuffer.toString('utf-8')
 
-        if(this.headers['Content-Type'] && this.headers['Content-Type'].startsWith('application/json')) {
+        if(this.headers['Content-Type'] && this.headers['Content-Type'].startsWith('application/json') && this.data) {
             try {
                 this.data = JSON.parse(this.body)
             } catch(e) {
@@ -276,6 +282,13 @@ function sleep(seconds) {
 }
 
 
+// require() 一个文件，且保证每次加载都是重新加载最新的内容
+function load(path) {
+    delete require.cache[require.resolve(path)]
+    return require(path)
+}
+
+
 module.exports = {
     httpServer,
     request,
@@ -286,4 +299,5 @@ module.exports = {
     formatSlash,
     random,
     sleep,
+    load,
 }

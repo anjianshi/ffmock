@@ -50,6 +50,13 @@ module.exports = {
     // 那么 base 需设置成 my_ffmock，以正确判断实际的 API 路径
     base: '',
 
+    // 预处理器。所有请求在发给 mock 函数前都会先由此函数进行一遍处理
+    // 与 mock 的函数形式相同
+    preprocess: async (request, response, utils) => {},
+
+    // 后处理器。所有请求在结束前都会由此函数再处理一遍
+    postprocess: async (request, response, utils) => {},
+
     // mock 内容
     mocks: {
         // APIPath: mockData||mockFunction
@@ -67,7 +74,7 @@ module.exports = {
         api_2: (request, resopnse, utils) => doSomeThing()
 
         // 对 mocks 没定义的 API，会返回 upstream 的响应内容
-    }
+    },
 }
 ```
 
@@ -115,6 +122,13 @@ async function mockFunction(request, response, utils) {
         string: (len, seed='abcdefg0123456...') => string,
         choice: ([a, b, c]) => item,     // 从数组里随机返回一个 item
     },
+
+    // 生成一个指定毫秒后完成的 promise，用于实现异步的 sleep 效果
+    sleep: async (ms) => {},
+
+    // 加载指定 path 的内容；与 require() 的区别在于每次都会重新加载。
+    // mock 里需要载入数据文件时很有用，可以保证修改数据文件后新内容立刻生效
+    load: path => content
 }
 ```
 

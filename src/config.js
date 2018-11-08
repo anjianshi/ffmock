@@ -47,6 +47,8 @@ function formatConfig(raw) {
     const config = {
         port: 9095,
         base: '',       // base 为空时前后都不加斜杠
+        preprocess: null,
+        postprocess: null,
         mocks: {}
     }
 
@@ -56,6 +58,9 @@ function formatConfig(raw) {
     config.upstream = formatSlash(raw.upstream, false, false)
 
     if(raw.base) config.base = formatSlash(raw.base, true, false)
+
+    if(raw.preprocess) config.preprocess = raw.preprocess
+    if(raw.postprocess) config.postprocess = raw.postprocess
 
     if(raw.mocks) {
         for(const key of Object.keys(raw.mocks)) {

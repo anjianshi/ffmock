@@ -53,18 +53,23 @@ class RequestHandler {
             API: this.fetchUpstream.bind(this),
             random: lib.random,
             sleep: lib.sleep,
+            load: lib.load,
         }
     }
 
     async handle() {
         const { config, request, response, APIPath, useMock } = this
+        const { preprocess, postprocess } = config
+
+        if(preprocess) await preprocess(request, response, this.utils)
         if(useMock) {
             const mockFunction = config.mocks[APIPath]
-            // mockFunction 返回 promise 或没有返回，这句代码都能正常执行
             await mockFunction(request, response, this.utils)
         } else {
             await this.fetchUpstream()
         }
+        if(postprocess) await postprocess(request, response, this.utils)
+
         this.formatHeaders()
     }
 
