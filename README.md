@@ -128,7 +128,7 @@ async function mockFunction(request, response, utils) {
 
     // 加载指定 path 的内容；与 require() 的区别在于每次都会重新加载。
     // mock 里需要载入数据文件时很有用，可以保证修改数据文件后新内容立刻生效
-    load: path => content
+    load: absolute_path => content
 }
 ```
 
