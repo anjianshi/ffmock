@@ -1,8 +1,8 @@
 {
     "name": "ffmock",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "Fire Frontend Mock Server",
-    "keywords": "mock",
+    "keywords": ["mock"],
     "homepage": "https://github.com/anjianshi/ffmock",
     "bugs": {
         "url": "https://github.com/anjianshi/ffmock/issues",
