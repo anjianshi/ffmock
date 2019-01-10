@@ -183,7 +183,7 @@ class ClientResponse {
         }
         this.body = bodyBuffer.toString('utf-8')
 
-        if(this.headers['Content-Type'] && this.headers['Content-Type'].startsWith('application/json') && this.data) {
+        if(this.headers['Content-Type'] && this.headers['Content-Type'].startsWith('application/json') && this.body) {
             try {
                 this.data = JSON.parse(this.body)
             } catch(e) {

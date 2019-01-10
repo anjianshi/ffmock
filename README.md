@@ -123,8 +123,8 @@ async function mockFunction(request, response, utils) {
         choice: ([a, b, c]) => item,     // 从数组里随机返回一个 item
     },
 
-    // 生成一个指定毫秒后完成的 promise，用于实现异步的 sleep 效果
-    sleep: async (ms) => {},
+    // 生成一个指定秒数后完成的 promise，用于实现异步的 sleep 效果
+    sleep: async (seconds) => {},
 
     // 加载指定 path 的内容；与 require() 的区别在于每次都会重新加载。
     // mock 里需要载入数据文件时很有用，可以保证修改数据文件后新内容立刻生效
