@@ -229,13 +229,13 @@ const Query = {
         const query = {}
         queryString.split('&').forEach(item => {
             const [key, value] = item.split('=')
-            query[key] = value
+            query[key] = decodeURIComponent(value)
         })
         return query
     },
     stringify: query => typeof query === 'string'
         ? query
-        : Object.keys(query).map(key => key + '=' + query[key]).join('&')
+        : Object.keys(query).map(key => key + '=' + encodeURIComponent(query[key])).join('&')
 }
 
 
