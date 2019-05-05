@@ -61,7 +61,7 @@ module.exports = {
     mocks: {
         // APIPath: mockData||mockFunction
 
-        // 可以直接指定一个数据作为相应结果（输出时会将其 JSON 化）
+        // 可以直接指定一个数据作为响应结果（输出时会将其 JSON 化）
         api_1: { a: 1, b: 2 },
 
         /*

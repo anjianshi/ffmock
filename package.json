@@ -2,7 +2,9 @@
     "name": "ffmock",
     "version": "1.2.3",
     "description": "Fire Frontend Mock Server",
-    "keywords": ["mock"],
+    "keywords": [
+        "mock"
+    ],
     "homepage": "https://github.com/anjianshi/ffmock",
     "bugs": {
         "url": "https://github.com/anjianshi/ffmock/issues",
@@ -15,5 +17,6 @@
     "repository": "github:anjianshi/ffmock",
     "engines": {
         "node": ">=8.0.0"
-    }
+    },
+    "dependencies": {}
 }
