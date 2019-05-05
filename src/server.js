@@ -79,7 +79,9 @@ class RequestHandler {
         response.headers['FFMock-Result'] = useMock ? 'mocked' : 'upstream'
 
         // CORS
-        response.headers['Access-Control-Allow-Origin'] = '*'
+        if (response.headers['Access-Control-Allow-Credentials'] !== 'true') {
+            response.headers['Access-Control-Allow-Origin'] = '*'
+        }
         // CORS - preflight
         response.headers['Access-Control-Max-Age'] = '3600'
         // CORS - 实际请求
