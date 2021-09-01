@@ -2,12 +2,12 @@ const fs = require('fs')
 const { formatSlash } = require('./lib')
 
 
-module.exports = function loadAndWatchConfig(configFile) {
+module.exports = function loadAndWatchConfig(configFile, watch=true) {
     const config = loadConfig(configFile)
     const execReload = () => reload(config, configFile)
     // 编辑器保存 config 文件时，可能会先保存一个空文件再写入实际内容，这之间有个延迟，要稍等一下再 reload config。
     // 不然可能会读出一个空文件来
-    fs.watch(configFile, () => setTimeout(execReload, 500))
+    if (watch) fs.watch(configFile, () => setTimeout(execReload, 500))
     return config
 }
 

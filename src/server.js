@@ -2,8 +2,8 @@ const lib = require('./lib')
 const loadAndWatchConfig = require('./config')
 
 
-module.exports = function startMockServer(rawConfig) {
-    const config = loadAndWatchConfig(rawConfig)
+module.exports = function startMockServer(rawConfig, watch) {
+    const config = loadAndWatchConfig(rawConfig, watch)
 
     console.log('Start mock server at ' + config.port)
     lib.httpServer(config.port, (...args) => (new RequestHandler(config, ...args)).handle())
