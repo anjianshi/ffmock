@@ -1,6 +1,6 @@
 {
   "name": "ffmock",
-  "version": "2.0.0-alpha",
+  "version": "2.0.0",
   "description": "Fire Frontend Mock Server",
   "keywords": [
     "mock"
@@ -25,7 +25,6 @@
   "engines": {
     "node": ">=8.0.0"
   },
-  "dependencies": {},
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

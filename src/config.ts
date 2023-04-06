@@ -52,15 +52,7 @@ export class ConfigManager {
   }
 
   private initialWatch() {
-    let timeoutId: NodeJS.Timeout | undefined
-    watchRequired(() => {
-      // 编辑器保存 config 文件时，可能会先保存一个空文件再写入实际内容，这之间有个延迟，要稍等一下再 reload。
-      // 不然可能会读出一个空文件来
-      if (timeoutId) clearTimeout(timeoutId)
-      timeoutId = setTimeout(() => {
-        this.reload()
-      }, 500)
-    })
+    watchRequired(() => this.reload())
   }
 
   /**
@@ -118,7 +110,7 @@ export class ConfigManager {
           ? null
           : typeof origUpstream === 'string'
           ? formatSlash(origUpstream, false, false)
-          : (request: ServerRequest) => formatSlash(origUpstream(request), false, false)
+          : origUpstream
     }
     if (raw.base !== undefined) config.base = formatSlash(raw.base, true, false)
     if (raw.preprocess) config.preprocess = raw.preprocess

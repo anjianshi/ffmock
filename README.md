@@ -48,11 +48,15 @@ module.exports = {
   // mock 监听的端口
   port: 9095,
 
-  // 上游 API URL
-  // - 可传入固定字符串；或一个函数，根据 request 返回 upstream
-  // - 遇到 mocks 里没定义的请求时，会代理到此网址
-  // - mock 处理函数里也可手动请求此网址，使用其响应内容
-  // - upstream 为空（空字符串或 null）时，请求 upstream 会抛出异常
+  /*
+  定义上游 API URL
+  遇到 mocks 里没定义的请求时，会代理到此网址；mock 处理函数里也可手动请求此网址，使用其响应内容。
+
+  传值：
+  - 若为字符串，会把它和请求路径拼起来，作为要调用的 URL
+  - 若为函数，由函数返回完整的调用 URL
+  - 若为空，请求 upstream 会抛出异常
+  */
   upstream: null,
 
   // mock 前面架了反向代理（如 Nginx）时可配置此项以便正确识别接口路径
@@ -67,11 +71,13 @@ module.exports = {
   postprocess: async (request, response, utils) => {},
 
   // mock 内容
+  // 若 API 没有匹配的 mocks 没定义的 API，会返回 upstream 的响应内容
   mocks: {
     // APIPath: mockData | mockFunction
+    // path 结尾带不带 '/' 都能匹配上
 
     // 可以直接指定一个数据作为响应结果（输出时会将其 JSON 化）
-    api_1: { a: 1, b: 2 },
+    apiPath1: { a: 1, b: 2 },
 
     /*
     也可以指定一个函数，实现更复杂的行为，例如：
@@ -80,8 +86,17 @@ module.exports = {
     - 自定义 HTTP headers、模拟随机的请求失败、模拟网络延迟
     详见下方的 "mockFunction 格式"
     */
-    api_2: (request, resopnse, utils) => doSomeThing(),
-    // 对 mocks 没定义的 API，会返回 upstream 的响应内容
+    apiPath2: (request, resopnse, utils) => doSomeThing(),
+
+    // 路径结尾可以带 * 号，代表通配符
+    // 例如以下路径可匹配 /path/ /path/abc/ /path/abc/def/
+    '/path/*': {}
+
+    // 路径任意小节以 : 开头，代表这小节可以是任意值
+    // 例如以下路径可匹配 /path/abc/detail /path/123/detail
+    '/path/:abc/detail'
+
+    // 带通配符的路径，优先级低于不带通配符的
   },
 }
 ```

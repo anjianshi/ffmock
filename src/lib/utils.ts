@@ -30,3 +30,15 @@ export function formatSlash(string: string, startsWith = false, endsWith = false
 
   return string
 }
+
+/**
+ * 转义正则字符
+ * 复制自 lodash: https://github.com/lodash/lodash/blob/master/escapeRegExp.js
+ */
+const reRegExpChar = /[\\^$.*+?()[\]{}|]/g
+const reHasRegExpChar = RegExp(reRegExpChar.source)
+export function escapeRegExp(string: string) {
+  return string && reHasRegExpChar.test(string)
+    ? string.replace(reRegExpChar, '\\$&')
+    : string || ''
+}

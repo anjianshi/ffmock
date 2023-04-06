@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import path from 'node:path'
 import Module from 'node:module'
 
 /**
@@ -40,6 +41,7 @@ export class ListenRequire {
         return Reflect.apply(target, thisArg, args)
       },
     })
+    console.log('Require Hooked.')
   }
 
   /**
@@ -50,27 +52,32 @@ export class ListenRequire {
   private static notify(requireModuleId: string, byModule: NodeModule) {
     if (!ListenRequire.listeners.length) return
 
+    const requireFilepath = ListenRequire.resolveRequireFilepath(requireModuleId, byModule)
+    if (requireFilepath === null) return // 解析不到文件，无需通知
+
     const isSource =
-      // 不是内置模块
       !Module.isBuiltin(requireModuleId) &&
-      // 执行引入的模块不是 node_modules
-      !byModule.filename.includes('node_modules') &&
-      // 以 ./ 或 ../ 为开头引入（若不以此开头，可能是引用 node_modules 库）
-      requireModuleId.startsWith('.') &&
-      // 被引入的路径里不包含 node_modules，避免直接通过路径引入 node_modules 脚本
-      !requireModuleId.includes('node_modules')
+      requireFilepath &&
+      !requireFilepath.includes('node_modules')
 
     // 如果所有 listener 都是 source only 的，那对于不是 isSource 的文件，可直接跳过通知。
     const allSourceOnly = ListenRequire.listeners.every(item => item.sourceOnly)
     if (allSourceOnly && !isSource) return
 
-    const moduleRequire = ListenRequire.getModuleRequire(byModule)
-    const requireFilepath = ListenRequire.safeResolve(moduleRequire, requireModuleId)
-    if (requireFilepath === null) return // 解析不到文件，无需通知
-
     for (const { listener, sourceOnly } of ListenRequire.listeners) {
       if (sourceOnly && !isSource) continue
       listener(requireFilepath, requireModuleId)
+    }
+  }
+
+  private static resolveRequireFilepath(requireModuleId: string, byModule: NodeModule) {
+    if (Module.isBuiltin(requireModuleId)) return requireModuleId // 内置模块原样返回
+
+    const moduleRequire = ListenRequire.getModuleRequire(byModule)
+    try {
+      return moduleRequire.resolve(requireModuleId)
+    } catch (e) {
+      return null // 解析不到文件，返回 null
     }
   }
 
@@ -85,17 +92,6 @@ export class ListenRequire {
     }
     return ListenRequire.moduleRequireMap.get(module)!
   }
-
-  /**
-   * 尝试获取模块绝对路径，若文件不存在，返回 null
-   */
-  private static safeResolve(require: NodeRequire, moduleId: string) {
-    try {
-      return require.resolve(moduleId)
-    } catch (e) {
-      return null
-    }
-  }
 }
 
 /**
@@ -103,11 +99,24 @@ export class ListenRequire {
  * 任意文件有变化时，触发回调
  */
 export function watchRequired(onUpdate: (filepath: string) => void) {
+  const timeoutMap = new Map<string, NodeJS.Timeout>()
+  function handleUpdate(filepath: string) {
+    clearTimeout(timeoutMap.get(filepath))
+    // 编辑器保存文件时，可能会先保存一个空文件再写入实际内容，这之间有个延迟。
+    // 所以稍等一下再实际处理，以避免重复处理，以及避免读出空文件。
+    const timeoutId = setTimeout(() => {
+      console.log('Detected update: ' + filepath)
+      onUpdate(filepath)
+    }, 500)
+    timeoutMap.set(filepath, timeoutId)
+  }
+
   const files = new Set<string>()
   listenRequire(filepath => {
     if (!files.has(filepath)) {
       files.add(filepath)
-      fs.watch(filepath, () => onUpdate(filepath))
+      console.log('Watching: ' + filepath)
+      fs.watch(filepath, () => handleUpdate(filepath))
     }
   })
 }

@@ -1,8 +1,9 @@
-import { sleep } from './lib/utils'
+import { sleep, formatSlash } from './lib/utils'
+import { path2pattern } from './lib/path-pattern'
 import { random } from './lib/random'
 import type { ServerRequest, ServerResponse, RequestOptions, ClientResponse } from './lib/http'
 import { startHTTPServer, makeRequest } from './lib/http-utils'
-import { loadAndWatchConfig, type Config } from './config'
+import { loadAndWatchConfig, type Config, type Processor } from './config'
 
 export interface MockUtils {
   config: Config
@@ -27,27 +28,56 @@ class RequestHandler {
     if (!request.path.startsWith(config.base)) {
       throw new Error(`base mismatch "${config.base}" => "${request.path}"`)
     }
+    this.mockFunction = this.matchMock()
   }
 
   get APIPath() {
     return this.request.path.slice(this.config.base.length)
   }
 
-  get useMock() {
-    return this.APIPath in this.config.mocks
+  readonly mockFunction?: Processor
+
+  matchMock() {
+    const APIPath = formatSlash(this.APIPath, true, true)
+    const mockItems = Object.entries(this.config.mocks).map(([path, mockFunction]) => {
+      let pathOrPattern = path2pattern(path)
+      if (typeof pathOrPattern === 'string') pathOrPattern = formatSlash(pathOrPattern, true, true)
+      return {
+        pathOrPattern,
+        mockFunction,
+      }
+    })
+
+    // 不带通配符的优先匹配
+    const exactMock = mockItems.find(
+      v => typeof v.pathOrPattern === 'string' && v.pathOrPattern === APIPath
+    )
+    if (exactMock) return exactMock.mockFunction
+
+    const patternMock = mockItems.find(item => {
+      const pattern = item.pathOrPattern
+      if (typeof pattern === 'string') return false
+      return pattern.exec(APIPath)
+    })
+    if (patternMock) return patternMock.mockFunction
+
+    return undefined
   }
+
+  makeMockPattern(path: string) {}
 
   // 用 upstream 的响应结果填充当前 response
   async fetchUpstream(options: Partial<RequestOptions> = {}) {
     const { config, request, APIPath } = this
 
     if (config.upstream === null) throw new Error('need upstream')
-    const upstream =
-      typeof config.upstream === 'string' ? config.upstream : config.upstream(request)
+
+    const url =
+      typeof config.upstream === 'string' ? config.upstream + APIPath : config.upstream(request)
 
     const upstreamRequestOptions = {
       method: request.method,
-      url: upstream + APIPath,
+      url,
       query: request.query,
       headers: request.headers.values,
       body: request.body,
@@ -73,13 +103,12 @@ class RequestHandler {
   }
 
   async handle() {
-    const { config, request, response, APIPath, useMock } = this
+    const { config, request, response } = this
     const { preprocess, postprocess } = config
 
     if (preprocess) await preprocess(request, response, this.utils)
-    if (useMock) {
-      const mockFunction = config.mocks[APIPath]
-      await mockFunction!(request, response, this.utils)
+    if (this.mockFunction) {
+      await this.mockFunction!(request, response, this.utils)
     } else {
       await this.fetchUpstream()
     }
@@ -89,9 +118,9 @@ class RequestHandler {
   }
 
   formatHeaders() {
-    const { response, useMock } = this
+    const { response } = this
 
-    response.headers.set('FFMock-Result', useMock ? 'mocked' : 'upstream')
+    response.headers.set('FFMock-Result', this.mockFunction ? 'mocked' : 'upstream')
 
     // CORS
     if (response.headers.get('Access-Control-Allow-Credentials') !== 'true') {

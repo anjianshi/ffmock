@@ -65,7 +65,9 @@ export async function makeRequest(requestOptions: RequestOptions) {
       nodeClientResponse.on('data', chunk => {
         bodyBuf = Buffer.concat([bodyBuf, chunk])
       })
-      nodeClientResponse.on('end', () => resolve(new ClientResponse(nodeClientResponse, bodyBuf)))
+      nodeClientResponse.on('end', () => {
+        resolve(new ClientResponse(nodeClientResponse, bodyBuf))
+      })
     })
     nodeClientRequest.on('error', e => console.error('problem with request: ' + e.message))
     nodeClientRequest.write(request.body)
