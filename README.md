@@ -9,7 +9,7 @@
 
 ```
 sudo npm install -g ffmock
-ffmock /path/to/mock.config.js
+ffmock /path/to/mock.js
 ```
 
 ### 项目内使用
@@ -26,7 +26,7 @@ package.json
 {
   "name": "xxx",
   "scripts": {
-    "mock": "ffmock /path/to/mock.config.js"
+    "mock": "ffmock /path/to/mock.js"
   }
 }
 ```
@@ -37,11 +37,11 @@ package.json
 npm run mock
 ```
 
-### config 自动 reload
+### mock 文件自动 reload
 
-ffmock 会监控 mock config 文件，自动加载最新的配置内容
+ffmock 会监控 mock 文件，自动加载最新的配置内容
 
-## mock config 格式
+## mock 文件格式
 
 ```javascript
 module.exports = {
