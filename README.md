@@ -267,7 +267,7 @@ module.exports = {
 const preprocess = mockFunction => {
   return (request, response, utils) => {
     // 进行一些预处理行为
-    response.headers['My-Custom-Header'] = 'Custom-Value'
+    response.headers.set('My-Custom-Header', 'Custom-Value')
 
     mockFunction(request, response, utils)
   }
