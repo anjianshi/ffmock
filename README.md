@@ -7,12 +7,12 @@
 
 ### 全局使用
 
-```
+```shell
 sudo npm install -g ffmock
-ffmock /path/to/mock.js
+ffmock path/to/mock.js
 ```
 
-### 项目内使用
+### 项目内使用（命令行启动）
 
 安装依赖
 
@@ -26,7 +26,7 @@ package.json
 {
   "name": "xxx",
   "scripts": {
-    "mock": "ffmock /path/to/mock.js"
+    "mock": "ffmock path/to/mock.js"
   }
 }
 ```
@@ -37,9 +37,20 @@ package.json
 npm run mock
 ```
 
+### 项目内使用（代码调用）
+
+安装依赖：同上
+
+代码内容：
+
+```javascript
+import { startMockServer } from 'ffmock'
+startMockServer('path/to/mock.js')
+```
+
 ### mock 文件自动 reload
 
-ffmock 会监控 mock 文件，自动加载最新的配置内容
+ffmock 会监控 mock 文件，在其更新时自动重新加载。
 
 ## mock 文件格式
 
@@ -126,7 +137,7 @@ async function mockFunction(request, response, utils) {
 }
 ```
 
-### utils 列表
+### utils 内容
 
 ```javascript
 {
@@ -192,7 +203,7 @@ async function mockFunction(request, response, utils) {
     method,
     url,
     query,         // object, 会作为 query string 补充到 URL 里
-    headers,
+    headers,       // { [name: string]: string | string[] }
     body,
     data,          // 若指定，会根据 headers['Content-Type'] 对其格式化（默认 JSON 化）并代替 body
 }
@@ -221,6 +232,21 @@ async function mockFunction(request, response, utils) {
     headers,    // Headers()
     body,       // 原始响应体
     data,       // 解析过的响应体。Content-Type 不为 json 或 json 解析失败时为 null
+}
+```
+
+### Headers -- HTTP Header 读写对象
+
+此对象所有方法忽略 header 名称的大小写。
+例如用 `headers.get('Content-Type')` 和 `headers.get('content-type')` 都能正常取到值。
+
+```javascript
+{
+  values: Record<string, string[]>  // 完整 headers 值列表
+  has(name: string): boolean
+  get(name: string): string
+  set(name: string, value: string | number | string[]): void
+  // ...更多方法见 src/lib/http.ts
 }
 ```
 

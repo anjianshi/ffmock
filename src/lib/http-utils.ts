@@ -1,7 +1,10 @@
 /**
  * HTTP 工具函数
  */
-import http from 'node:http'
+import http, {
+  type IncomingMessage as NodeServerRequest,
+  type ServerResponse as NodeServerResponse,
+} from 'node:http'
 import https from 'node:https'
 import {
   ServerRequest,
@@ -21,27 +24,39 @@ export function startHTTPServer(
     serverResponse: ServerResponse
   ) => undefined | Promise<void>
 ) {
-  const server = http.createServer((nodeServerRequest, nodeServerResponse) => {
-    let bodyBuf = Buffer.from('')
-    nodeServerRequest.on('data', chunk => {
-      bodyBuf = Buffer.concat([bodyBuf, chunk])
-    })
-    nodeServerRequest.on('end', async () => {
-      const serverRequest = new ServerRequest(nodeServerRequest, bodyBuf)
-      const serverResponse = new ServerResponse()
-      await handler(serverRequest, serverResponse)
-      serverResponse.format()
-
-      nodeServerResponse.statusCode = serverResponse.status
-      for (const key of Object.keys(serverResponse.headers.values)) {
-        const value = serverResponse.headers.getAll(key)
-        if (value !== undefined) nodeServerResponse.setHeader(key, value)
-      }
-
-      nodeServerResponse.end(serverResponse.body)
-    })
-  })
+  const server = http.createServer(handleNodeRequest.bind(null, handler))
   server.listen(port)
+}
+
+/**
+ * 把 Node.js 原生请求内容转为 FFMock 整理过的格式，并交给 handler 来处理。
+ */
+export async function handleNodeRequest(
+  handler: (
+    serverRequest: ServerRequest,
+    serverResponse: ServerResponse
+  ) => undefined | Promise<void>,
+  nodeServerRequest: NodeServerRequest,
+  nodeServerResponse: NodeServerResponse
+) {
+  let bodyBuf = Buffer.from('')
+  nodeServerRequest.on('data', chunk => {
+    bodyBuf = Buffer.concat([bodyBuf, chunk])
+  })
+  nodeServerRequest.on('end', async () => {
+    const serverRequest = new ServerRequest(nodeServerRequest, bodyBuf)
+    const serverResponse = new ServerResponse()
+    await handler(serverRequest, serverResponse)
+    serverResponse.format()
+
+    nodeServerResponse.statusCode = serverResponse.status
+    for (const key of Object.keys(serverResponse.headers.values)) {
+      const value = serverResponse.headers.getAll(key)
+      if (value !== undefined) nodeServerResponse.setHeader(key, value)
+    }
+
+    nodeServerResponse.end(serverResponse.body)
+  })
 }
 
 /**
